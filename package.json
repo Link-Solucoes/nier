@@ -8,13 +8,19 @@
 	"scripts": {
 		"format": "biome format --write .",
 		"lint": "biome lint --write .",
-		"commit": "git cz"
+		"commit": "git cz",
+		"test": "vitest --run",
+		"test:watch": "vitest"
 	},
 	"dependencies": {},
 	"devDependencies": {
 		"@biomejs/biome": "^2.1.4",
 		"commitizen": "^4.3.1",
-		"cz-conventional-changelog": "^3.3.0"
+		"cz-conventional-changelog": "^3.3.0",
+		"vitest": "^2.0.5",
+		"@types/node": "^20.14.9",
+		"ts-node": "^10.9.2",
+		"typescript": "^5.5.4"
 	},
 	"config": {
 		"commitizen": {
