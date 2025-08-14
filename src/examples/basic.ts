@@ -29,7 +29,7 @@ const lt = createComparator({
 const registry = mergeRegistry(coreRegistry, createRegistry({ comparators: [eq, exists, lt] }));
 
 // Simple action kinds
-registry.actionKinds["log"] = {
+registry.actionKinds.log = {
 	kind: "log",
 	execute: async (params) => {
 		// eslint-disable-next-line no-console

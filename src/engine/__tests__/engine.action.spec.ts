@@ -25,7 +25,7 @@ describe("engine action result and error", () => {
 			triggers: [],
 		};
 		const reg = { ...coreRegistry };
-		reg.actionKinds["echo"] = {
+		reg.actionKinds.echo = {
 			kind: "echo",
 			execute: async (p) => ({ status: "ok", data: p }),
 		};
@@ -48,7 +48,7 @@ describe("engine action result and error", () => {
 
 		await engine.startFlowPerNode({ automation, executionId: "ex1" });
 		const s = await store.load("ex1");
-		expect(s?.exec?.nodeResults["n1"]).toEqual({
+		expect(s?.exec?.nodeResults.n1).toEqual({
 			status: "ok",
 			data: { v: 1 },
 		});
@@ -67,7 +67,7 @@ describe("engine action result and error", () => {
 			triggers: [],
 		};
 		const reg = { ...coreRegistry };
-		reg.actionKinds["boom"] = {
+		reg.actionKinds.boom = {
 			kind: "boom",
 			execute: async () => {
 				throw new Error("bad");
@@ -94,7 +94,7 @@ describe("engine action result and error", () => {
 
 		await engine.startFlowPerNode({ automation, executionId: "ex2" });
 		const s = await store.load("ex2");
-		const lastErr = (s?.data as Record<string, unknown>)["__lastError"] as { message?: string } | undefined;
+		const lastErr = (s?.data as Record<string, unknown>).__lastError as { message?: string } | undefined;
 		expect(lastErr?.message).toBe("bad");
 		const events: EngineEvent[] = onEvent.mock.calls.map((c) => c[0]);
 		expect(events.some((e) => e.type === "nodeErrored" && e.nodeId === "n1")).toBe(true);

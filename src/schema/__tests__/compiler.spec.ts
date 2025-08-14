@@ -36,7 +36,7 @@ describe("schema compiler", () => {
 		const { schema } = compileAutomationSchema(merged);
 		// Navigate to comparator enum with typed access
 		const defs = (schema as { $defs: Record<string, unknown> }).$defs;
-		const conditionNode = defs["ConditionNode"] as {
+		const conditionNode = defs.ConditionNode as {
 			oneOf: Array<{
 				properties?: {
 					type?: { const?: string };
@@ -53,7 +53,7 @@ describe("schema compiler", () => {
 		const merged = mergeRegistry(coreRegistry, reg);
 		const { schema } = compileAutomationSchema(merged);
 		const defs = (schema as { $defs: Record<string, unknown> }).$defs;
-		const actionNode = defs["ActionNode"] as {
+		const actionNode = defs.ActionNode as {
 			properties: {
 				action: { properties: { kind: { enum?: string[] } } };
 			};
@@ -75,7 +75,7 @@ describe("schema compiler", () => {
 		expect(kinds).toContain("days_since_signup");
 		// Schema operand kind includes fn and custom kinds
 		const defs = (schema as { $defs: Record<string, unknown> }).$defs;
-		const operand = defs["Operand"] as {
+		const operand = defs.Operand as {
 			oneOf: Array<{ properties?: { kind?: { enum?: string[] } } }>;
 		};
 		const variant = operand.oneOf.find((o) => Array.isArray(o.properties?.kind?.enum)) as
@@ -87,7 +87,7 @@ describe("schema compiler", () => {
 	it("defines condition groups with recursive children", () => {
 		const { schema } = compileAutomationSchema(coreRegistry);
 		const defs = (schema as { $defs: Record<string, unknown> }).$defs;
-		const conditionNode = defs["ConditionNode"] as {
+		const conditionNode = defs.ConditionNode as {
 			oneOf: Array<{
 				properties?: {
 					type?: { const?: string };
@@ -104,7 +104,7 @@ describe("schema compiler", () => {
 	it("defines parallel join strategy and count constraints", () => {
 		const { schema } = compileAutomationSchema(coreRegistry);
 		const defs = (schema as { $defs: Record<string, unknown> }).$defs;
-		const parallel = defs["ParallelNode"] as {
+		const parallel = defs.ParallelNode as {
 			properties: {
 				join: {
 					properties: {
@@ -122,7 +122,7 @@ describe("schema compiler", () => {
 	it("defines wait node shape with duration/until", () => {
 		const { schema } = compileAutomationSchema(coreRegistry);
 		const defs = (schema as { $defs: Record<string, unknown> }).$defs;
-		const wait = defs["WaitNode"] as {
+		const wait = defs.WaitNode as {
 			properties: {
 				wait: {
 					properties: {
@@ -139,7 +139,7 @@ describe("schema compiler", () => {
 	it("defines trigger throttle and filter condition", () => {
 		const { schema } = compileAutomationSchema(coreRegistry);
 		const defs = (schema as { $defs: Record<string, unknown> }).$defs;
-		const trigger = defs["Trigger"] as {
+		const trigger = defs.Trigger as {
 			properties: {
 				throttle: { required: ["intervalMs", "maxInInterval"] };
 				filter: { $ref: string };
@@ -152,11 +152,11 @@ describe("schema compiler", () => {
 	it("graph requires at least 1 node and edges are typed", () => {
 		const { schema } = compileAutomationSchema(coreRegistry);
 		const defs = (schema as { $defs: Record<string, unknown> }).$defs;
-		const graph = defs["Graph"] as {
+		const graph = defs.Graph as {
 			properties: { nodes: { minItems: number } };
 		};
 		expect(graph.properties.nodes.minItems).toBe(1);
-		const edge = defs["Edge"] as { required: string[] };
+		const edge = defs.Edge as { required: string[] };
 		expect(edge.required).toEqual(["id", "from", "to"]);
 	});
 
@@ -189,7 +189,7 @@ describe("schema compiler", () => {
 		const noActions = { ...merged, actionKinds: {} } as typeof merged;
 		const { schema } = compileAutomationSchema(noActions);
 		const defs = (schema as { $defs: Record<string, unknown> }).$defs;
-		const actionNode = defs["ActionNode"] as {
+		const actionNode = defs.ActionNode as {
 			properties: {
 				action: {
 					properties: { kind: { enum?: string[]; type?: string } };

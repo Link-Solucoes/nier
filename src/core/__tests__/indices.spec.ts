@@ -48,16 +48,16 @@ describe("buildIndices", () => {
 		};
 		const idx = buildIndices(graph);
 		// explicit
-		expect(idx.outgoing["a"]).toEqual(["d"]);
-		expect(idx.incoming["d"]).toContain("a");
+		expect(idx.outgoing.a).toEqual(["d"]);
+		expect(idx.incoming.d).toContain("a");
 		// decision implicit to branches + default
-		expect(idx.outgoing["d"]).toEqual(["w", "p"]);
+		expect(idx.outgoing.d).toEqual(["w", "p"]);
 		// wait implicit to
-		expect(idx.outgoing["w"]).toEqual(["e"]);
+		expect(idx.outgoing.w).toEqual(["e"]);
 		// parallel implicit to branches + join to
-		expect(idx.outgoing["p"]).toEqual(["x1", "y1", "e"]);
+		expect(idx.outgoing.p).toEqual(["x1", "y1", "e"]);
 		// degrees
-		expect(idx.inDegree["e"]).toBeGreaterThan(0);
-		expect(idx.outDegree["p"]).toBe(3);
+		expect(idx.inDegree.e).toBeGreaterThan(0);
+		expect(idx.outDegree.p).toBe(3);
 	});
 });

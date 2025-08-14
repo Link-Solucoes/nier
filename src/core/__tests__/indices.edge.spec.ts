@@ -11,9 +11,9 @@ describe("indices edge cases", () => {
 			],
 		};
 		const idx = buildIndices(graph);
-		expect(idx.outDegree["a"]).toBe(0);
-		expect(idx.inDegree["a"]).toBe(0);
-		expect(idx.outDegree["b"]).toBe(0);
-		expect(idx.inDegree["b"]).toBe(0);
+		expect(idx.outDegree.a).toBe(0);
+		expect(idx.inDegree.a).toBe(0);
+		expect(idx.outDegree.b).toBe(0);
+		expect(idx.inDegree.b).toBe(0);
 	});
 });
