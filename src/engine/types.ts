@@ -57,6 +57,12 @@ export type EngineEvent =
 			matchedBranchIds: string[];
 	  }
 	| {
+			type: "edgeMultiMatch";
+			executionId: ExecutionId;
+			nodeId: NodeId;
+			toNodeIds: string[];
+	  }
+	| {
 			type: "nodeErrored";
 			executionId: ExecutionId;
 			nodeId: NodeId;

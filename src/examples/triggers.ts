@@ -8,10 +8,7 @@ import {
 	InMemoryExecutionStore,
 	mergeRegistry,
 } from "..";
-import {
-	createTriggerHelper,
-	type TriggerExecConfig,
-} from "../engine/triggers";
+import { createTriggerHelper, type TriggerExecConfig } from "../engine/triggers";
 
 // Extend comparators with a concrete EQ implementation
 const eq = createComparator({
@@ -19,10 +16,7 @@ const eq = createComparator({
 	arity: 2,
 	eval: async ([a, b]) => a === b,
 });
-const registry = mergeRegistry(
-	coreRegistry,
-	createRegistry({ comparators: [eq] })
-);
+const registry = mergeRegistry(coreRegistry, createRegistry({ comparators: [eq] }));
 
 // Simple action kind to observe execution flow
 registry.actionKinds.log = {

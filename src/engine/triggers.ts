@@ -1,8 +1,4 @@
-import type {
-	Automation,
-	ConditionNode,
-	RuntimeContextSpaces,
-} from "../core/types";
+import type { Automation, ConditionNode, RuntimeContextSpaces } from "../core/types";
 import { evaluateConditionTree } from "./conditions";
 import type { EngineRuntime, ExecutionId } from "./types";
 
@@ -35,19 +31,14 @@ export interface TriggerHandler<Evt = unknown> {
 	/** Nome do evento que esse handler espera. */
 	event: string;
 	/** Função que processa o evento e inicia o fluxo se o filtro passar. */
-	handle: (
-		evt: Evt,
-		runtime: EngineRuntime
-	) => Promise<{ started: boolean; executionId?: ExecutionId }>;
+	handle: (evt: Evt, runtime: EngineRuntime) => Promise<{ started: boolean; executionId?: ExecutionId }>;
 }
 
 /**
  * Cria um helper de trigger com tipagem forte sobre o payload de evento.
  * Responsabilidade de agendamento/escuta do evento é do usuário (ex.: NestJS listener, fila, etc.).
  */
-export function createTriggerHelper<Evt = unknown>(
-	input: CreateTriggerHelperInput<Evt>
-): TriggerHandler<Evt> {
+export function createTriggerHelper<Evt = unknown>(input: CreateTriggerHelperInput<Evt>): TriggerHandler<Evt> {
 	const { id, event, filter, exec } = input;
 	return {
 		event,
@@ -68,11 +59,7 @@ export function createTriggerHelper<Evt = unknown>(
 				},
 				user: { data: exec.mapUserData ? exec.mapUserData(evt) : {} },
 			};
-			const ok = await evaluateConditionTree(
-				filter,
-				runtimeCtx,
-				runtime.registry
-			);
+			const ok = await evaluateConditionTree(filter, runtimeCtx, runtime.registry);
 			if (!ok) return { started: false };
 
 			const executionId = exec.makeExecutionId(evt);

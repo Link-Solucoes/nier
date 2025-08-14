@@ -26,10 +26,7 @@ const lt = createComparator({
 	eval: async ([a, b]) => Number(a) < Number(b),
 });
 
-const registry = mergeRegistry(
-	coreRegistry,
-	createRegistry({ comparators: [eq, exists, lt] })
-);
+const registry = mergeRegistry(coreRegistry, createRegistry({ comparators: [eq, exists, lt] }));
 
 // Simple action kinds
 registry.actionKinds["log"] = {

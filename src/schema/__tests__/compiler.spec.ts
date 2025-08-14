@@ -7,10 +7,7 @@ import {
 	createRegistry,
 	mergeRegistry,
 } from "../../registry/registry";
-import {
-	compileAutomationBundle,
-	compileAutomationSchema,
-} from "../../schema/compiler";
+import { compileAutomationBundle, compileAutomationSchema } from "../../schema/compiler";
 
 describe("schema compiler", () => {
 	it("builds manifest from registry", () => {
@@ -47,9 +44,7 @@ describe("schema compiler", () => {
 				};
 			}>;
 		};
-		const cond = conditionNode.oneOf.find(
-			(x) => x.properties?.type?.const === "condition"
-		);
+		const cond = conditionNode.oneOf.find((x) => x.properties?.type?.const === "condition");
 		expect(cond?.properties?.comparator?.enum).toContain("CUSTOM");
 	});
 
@@ -83,12 +78,10 @@ describe("schema compiler", () => {
 		const operand = defs["Operand"] as {
 			oneOf: Array<{ properties?: { kind?: { enum?: string[] } } }>;
 		};
-		const variant = operand.oneOf.find((o) =>
-			Array.isArray(o.properties?.kind?.enum)
-		) as { properties?: { kind?: { enum?: string[] } } } | undefined;
-		expect(variant?.properties?.kind?.enum).toEqual(
-			expect.arrayContaining(["fn", "days_since_signup"])
-		);
+		const variant = operand.oneOf.find((o) => Array.isArray(o.properties?.kind?.enum)) as
+			| { properties?: { kind?: { enum?: string[] } } }
+			| undefined;
+		expect(variant?.properties?.kind?.enum).toEqual(expect.arrayContaining(["fn", "days_since_signup"]));
 	});
 
 	it("defines condition groups with recursive children", () => {
@@ -103,13 +96,9 @@ describe("schema compiler", () => {
 				};
 			}>;
 		};
-		const group = conditionNode.oneOf.find(
-			(x) => x.properties?.type?.const === "group"
-		);
+		const group = conditionNode.oneOf.find((x) => x.properties?.type?.const === "group");
 		expect(group?.properties?.op?.enum).toEqual(["AND", "OR"]);
-		expect(group?.properties?.children?.items.$ref).toBe(
-			"#/$defs/ConditionNode"
-		);
+		expect(group?.properties?.children?.items.$ref).toBe("#/$defs/ConditionNode");
 	});
 
 	it("defines parallel join strategy and count constraints", () => {
@@ -126,11 +115,7 @@ describe("schema compiler", () => {
 			};
 		};
 		const join = parallel.properties.join;
-		expect(join.properties.strategy.enum).toEqual([
-			"waitAll",
-			"waitAny",
-			"count",
-		]);
+		expect(join.properties.strategy.enum).toEqual(["waitAll", "waitAny", "count"]);
 		expect(join.properties.count.minimum).toBe(1);
 	});
 
@@ -147,10 +132,7 @@ describe("schema compiler", () => {
 				};
 			};
 		};
-		expect(wait.properties.wait.properties.kind.enum).toEqual([
-			"duration",
-			"until",
-		]);
+		expect(wait.properties.wait.properties.kind.enum).toEqual(["duration", "until"]);
 		expect(wait.properties.wait.properties.durationMs.minimum).toBe(1);
 	});
 
@@ -163,10 +145,7 @@ describe("schema compiler", () => {
 				filter: { $ref: string };
 			};
 		};
-		expect(trigger.properties.throttle.required).toEqual([
-			"intervalMs",
-			"maxInInterval",
-		]);
+		expect(trigger.properties.throttle.required).toEqual(["intervalMs", "maxInInterval"]);
 		expect(trigger.properties.filter.$ref).toBe("#/$defs/ConditionNode");
 	});
 
@@ -217,11 +196,7 @@ describe("schema compiler", () => {
 				};
 			};
 		};
-		expect(
-			actionNode.properties.action.properties.kind.enum
-		).toBeUndefined();
-		expect(actionNode.properties.action.properties.kind.type).toBe(
-			"string"
-		);
+		expect(actionNode.properties.action.properties.kind.enum).toBeUndefined();
+		expect(actionNode.properties.action.properties.kind.type).toBe("string");
 	});
 });

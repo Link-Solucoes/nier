@@ -150,6 +150,63 @@ export const ruleWaitNodes: ValidationRule = ({ graph }) => {
 	return issues;
 };
 
+// Endpoints implícitos devem existir: DecisionBranch.to, ParallelBranch.start/Parallel.to, Wait.to
+export const ruleImplicitEndpointsExist: ValidationRule = ({ graph, indices }) => {
+	const issues: ValidationIssue[] = [];
+	const exists = (id: string | undefined) => (id ? Boolean(indices.nodeMap[id]) : true);
+	for (const n of graph.nodes) {
+		if (isDecision(n)) {
+			for (const b of n.branches) {
+				if (!exists(b.to)) {
+					issues.push({
+						level: "error",
+						code: IssueCodes.EDGE_NODE_MISSING,
+						message: `Decision branch aponta para nó inexistente`,
+						context: { nodeId: n.id, to: b.to },
+					});
+				}
+			}
+			if (n.defaultTo && !exists(n.defaultTo)) {
+				issues.push({
+					level: "error",
+					code: IssueCodes.EDGE_NODE_MISSING,
+					message: `Decision defaultTo aponta para nó inexistente`,
+					context: { nodeId: n.id, to: n.defaultTo },
+				});
+			}
+		} else if (isParallel(n)) {
+			for (const b of n.branches) {
+				if (!exists(b.start)) {
+					issues.push({
+						level: "error",
+						code: IssueCodes.EDGE_NODE_MISSING,
+						message: `Parallel branch start aponta para nó inexistente`,
+						context: { nodeId: n.id, start: b.start },
+					});
+				}
+			}
+			if (n.to && !exists(n.to)) {
+				issues.push({
+					level: "error",
+					code: IssueCodes.EDGE_NODE_MISSING,
+					message: `Parallel to aponta para nó inexistente`,
+					context: { nodeId: n.id, to: n.to },
+				});
+			}
+		} else if (isWait(n)) {
+			if (n.to && !exists(n.to)) {
+				issues.push({
+					level: "error",
+					code: IssueCodes.EDGE_NODE_MISSING,
+					message: `Wait to aponta para nó inexistente`,
+					context: { nodeId: n.id, to: n.to },
+				});
+			}
+		}
+	}
+	return issues;
+};
+
 export const ruleThrottle: ValidationRule = ({ automation }) => {
 	const issues: ValidationIssue[] = [];
 	for (const t of automation.triggers) {

@@ -104,13 +104,17 @@ export const coreRegistry = createRegistry({
 		{ kind: "wait", category: "core" },
 		{ kind: "end", category: "core" },
 	],
-	// comparators base mínimos (stubs - sem lógica implementada aqui)
+	// comparators base mínimos (implementações funcionais)
 	comparators: [
-		{ id: "EQ", arity: 2, eval: () => Promise.resolve(true) },
-		{ id: "NEQ", arity: 2, eval: () => Promise.resolve(true) },
-		{ id: "GT", arity: 2, eval: () => Promise.resolve(true) },
-		{ id: "LT", arity: 2, eval: () => Promise.resolve(true) },
-		{ id: "EXISTS", arity: 1, eval: () => Promise.resolve(true) },
+		{ id: "EQ", arity: 2, eval: async ([a, b]) => a === b },
+		{ id: "NEQ", arity: 2, eval: async ([a, b]) => a !== b },
+		{ id: "GT", arity: 2, eval: async ([a, b]) => Number(a) > Number(b) },
+		{ id: "LT", arity: 2, eval: async ([a, b]) => Number(a) < Number(b) },
+		{
+			id: "EXISTS",
+			arity: 1,
+			eval: async ([a]) => a !== undefined && a !== null,
+		},
 	],
 });
 

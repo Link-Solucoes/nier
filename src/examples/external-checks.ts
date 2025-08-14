@@ -10,10 +10,7 @@ import {
 	mergeRegistry,
 	type RuntimeContextSpaces,
 } from "..";
-import {
-	createTriggerHelper,
-	type TriggerExecConfig,
-} from "../engine/triggers";
+import { createTriggerHelper, type TriggerExecConfig } from "../engine/triggers";
 
 // Mock repo to simulate external data access
 const userRepo = {
@@ -50,7 +47,7 @@ const gt = createComparator({
 // Registry with resolver + comparator
 const registry = mergeRegistry(
 	coreRegistry,
-	createRegistry({ operandResolvers: [daysSinceSignup], comparators: [gt] })
+	createRegistry({ operandResolvers: [daysSinceSignup], comparators: [gt] }),
 );
 
 // Simple automation: start -> end with a log action

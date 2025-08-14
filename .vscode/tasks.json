@@ -5,30 +5,21 @@
 			"label": "Run tests",
 			"type": "shell",
 			"command": "pnpm",
-			"args": [
-				"-s",
-				"test"
-			],
+			"args": ["-s", "test"],
 			"group": "build"
 		},
 		{
 			"label": "Run tests",
 			"type": "shell",
 			"command": "pnpm",
-			"args": [
-				"-s",
-				"test"
-			],
+			"args": ["-s", "test"],
 			"group": "build"
 		},
 		{
 			"label": "Run tests",
 			"type": "shell",
 			"command": "pnpm",
-			"args": [
-				"-s",
-				"test"
-			],
+			"args": ["-s", "test"],
 			"group": "build"
 		}
 	]

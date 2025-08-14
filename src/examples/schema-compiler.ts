@@ -25,10 +25,7 @@ const sendEmail = createActionKind({
 	},
 });
 
-const registry = mergeRegistry(
-	coreRegistry,
-	createRegistry({ actionKinds: [sendEmail] })
-);
+const registry = mergeRegistry(coreRegistry, createRegistry({ actionKinds: [sendEmail] }));
 
 // Minimal automation using the action kind above
 const automation: Automation = {
@@ -60,7 +57,7 @@ async function main() {
 	console.log("Schema $id:", (schema as { $id?: string }).$id);
 	console.log(
 		"Manifest actions:",
-		manifest.actionKinds.map((a) => a.kind)
+		manifest.actionKinds.map((a) => a.kind),
 	);
 
 	// Option 2: bundle with the current automation instance

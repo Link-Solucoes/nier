@@ -9,6 +9,7 @@ import type {
 	Operand,
 	RuntimeContextSpaces,
 } from "../core/types";
+import { evaluateConditionTree } from "./conditions";
 import { resolveOperands } from "./operands";
 import type {
 	EngineRuntime,
@@ -186,11 +187,12 @@ export function createEngine({ runtime, scheduler }: CreateEngineParams) {
 		},
 	};
 }
+
 /**
  * Lida com o trabalho de um nó (stub). Futuramente: action exec, decision eval, parallel, wait.
  */
 async function handleNodeWork(input: NodeWorkInput): Promise<NodeWorkOutput> {
-	const { node, indices, runtime } = input;
+	const { node, runtime } = input;
 	switch (node.type) {
 		case "action": {
 			const def = runtime.registry.actionKinds[node.action.kind];
@@ -212,7 +214,36 @@ async function handleNodeWork(input: NodeWorkInput): Promise<NodeWorkOutput> {
 				};
 				result = await def.execute(node.action.params ?? {}, ctx);
 			}
-			const nextIds = indices.outgoing[node.id] || [];
+			// Seleciona próximos via edges explícitas, avaliando condições quando presentes.
+			const allEdges = input.automation.graph.edges || [];
+			const fromHere = allEdges.filter((e) => e.from === node.id);
+			const execCtx: RuntimeContextSpaces = {
+				flow: {
+					automationId: input.state.automationId,
+					rootNodeId: input.automation.rootNodeId,
+					triggerId: undefined,
+					startedAt: input.state.startedAt,
+				},
+				exec: {
+					currentNodeId: input.state.currentNodeId,
+					lastNodeId: input.state.lastNodeId,
+					nodeResults: input.state.exec?.nodeResults ?? {},
+				},
+				user: { data: input.userContext.data },
+			};
+			const nextIds: string[] = [];
+			for (const e of fromHere) {
+				const ok = await evaluateConditionTree(e.condition?.root, execCtx, runtime.registry);
+				if (ok) nextIds.push(e.to);
+			}
+			if (nextIds.length > 1) {
+				runtime.onEvent?.({
+					type: "edgeMultiMatch",
+					executionId: input.state.executionId,
+					nodeId: node.id,
+					toNodeIds: nextIds,
+				});
+			}
 			const updatedState: Partial<ExecutionState> = {
 				exec: {
 					nodeResults: {
