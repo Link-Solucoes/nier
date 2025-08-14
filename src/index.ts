@@ -18,6 +18,8 @@ export {
 	createOperandResolver,
 	withValidationRules,
 } from "./registry/registry";
+export * from "./schema/compiler";
+export * from "./schema/types";
 export * from "./validation/rules/types";
 
 /* Exemplo extensão custom

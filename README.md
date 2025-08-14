@@ -16,6 +16,7 @@ Status: experimental/alpha. A API pode mudar sem aviso até v1.
 -   Operands e resolução de valores
 -   Índices derivados de grafo
 -   Exemplos adicionais
+-   Schema compiler (JSON Schema + Manifest)
 -   Roadmap e limitações
 -   Contribuição e licença
 -   Triggers (conceito e helper)
@@ -289,6 +290,67 @@ Helpers de runtime (internos): `resolveOperand`, `resolveOperands`.
 
 -   `src/examples/basic.ts`: fluxo com log, decision por `LT`, wait de 50ms, paralelismo com `waitAll`.
 -   Testes em `src/engine/__tests__`: cobrem decisão (multi-match), estratégias de join, e wait + parallel.
+
+## Schema compiler (JSON Schema + Manifest)
+
+Por que: gerar um JSON Schema do modelo de Automation para ótima DX (autocomplete/validadores no editor) e consumo por front-ends/LLMs. Também exporta um Manifest de capacidades derivado do seu `registry` (actions, comparators, operand resolvers, regras de validação).
+
+APIs:
+
+- `compileAutomationSchema(registry, options?)` → `{ schema, manifest }`
+- `compileAutomationBundle(automation, registry, options?)` → `{ schema, manifest, automation }`
+
+Options aceitas:
+
+- `schemaId?`: define `$id` no JSON Schema gerado.
+- `draft?`: versão do draft (`"2020-12"` padrão).
+
+O que o Manifest contém (resumo):
+
+- `nodeKinds`: `{ kind, category?, description? }[]`
+- `actionKinds`: `{ kind, displayName?, category?, schema? }[]` (schema é repassado para validar `action.params` daquela kind)
+- `comparators`: `{ id, arity }[]`
+- `operandResolvers`: `{ kind }[]`
+- `validationRuleNames`: `string[]`
+
+Como usar (exemplo rápido):
+
+```ts
+import {
+	coreRegistry,
+	createActionKind,
+	createRegistry,
+	mergeRegistry,
+	compileAutomationSchema,
+	compileAutomationBundle,
+} from "@linksolucoes/nier";
+
+const sendEmail = createActionKind({
+	kind: "send_email",
+	schema: {
+		type: "object",
+		required: ["templateId", "to"],
+		properties: { templateId: { type: "string" }, to: { type: "string" } },
+	},
+});
+const registry = mergeRegistry(coreRegistry, createRegistry({ actionKinds: [sendEmail] }));
+
+const { schema, manifest } = compileAutomationSchema(registry, {
+	schemaId: "https://example.com/schemas/automation.json",
+});
+
+// Ou com a Automation embutida
+const bundle = compileAutomationBundle({ /* ...Automation... */ } as any, registry);
+```
+
+Detalhes de validação no schema:
+
+- `ActionNode.action.params` é validado com base no `schema` do action kind correspondente (quando fornecido), via `oneOf`.
+- `ConditionNode` diferencia comparadores unários e binários (com/sem `right`).
+- `Operand` inclui `kind: "fn"` e também os `operandResolvers` do registry; quando `kind == "fn"` exige `fnId` válido.
+- `ParallelNode.join` e `WaitNode.wait` usam `oneOf` para exigir os campos apropriados por estratégia/kind.
+
+Veja o exemplo completo em `src/examples/schema-compiler.ts`.
 
 ## Triggers (conceito e helper)
 

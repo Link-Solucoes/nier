@@ -5,8 +5,30 @@
 			"label": "Run tests",
 			"type": "shell",
 			"command": "pnpm",
-			"args": ["-s", "test"],
-			"problemMatcher": ["$tsc"],
+			"args": [
+				"-s",
+				"test"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Run tests",
+			"type": "shell",
+			"command": "pnpm",
+			"args": [
+				"-s",
+				"test"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Run tests",
+			"type": "shell",
+			"command": "pnpm",
+			"args": [
+				"-s",
+				"test"
+			],
 			"group": "build"
 		}
 	]
