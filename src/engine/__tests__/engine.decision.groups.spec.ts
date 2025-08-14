@@ -1,11 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { Automation } from "../../core/types";
-import {
-	coreRegistry,
-	createComparator,
-	createRegistry,
-	mergeRegistry,
-} from "../../registry/registry";
+import { coreRegistry, createComparator, createRegistry, mergeRegistry } from "../../registry/registry";
 import { createEngine } from "../engine";
 import { InlineSchedulerAdapter } from "../scheduler";
 import { InMemoryExecutionStore } from "../store/in-memory";
@@ -96,10 +91,7 @@ const automation: Automation = {
 
 describe("decision group conditions", () => {
 	it("evaluates AND and OR correctly; missing comparator yields false", async () => {
-		const reg = mergeRegistry(
-			coreRegistry,
-			createRegistry({ comparators: [TRUE, FALSE] })
-		);
+		const reg = mergeRegistry(coreRegistry, createRegistry({ comparators: [TRUE, FALSE] }));
 		const { engine, onEvent } = setup(reg);
 		await engine.startFlowPerNode({ automation, executionId: "dg1" });
 		const events: EngineEvent[] = onEvent.mock.calls.map((c) => c[0]);
@@ -108,21 +100,12 @@ describe("decision group conditions", () => {
 	});
 
 	it("no defaultTo and all false -> no next", async () => {
-		const reg = mergeRegistry(
-			coreRegistry,
-			createRegistry({ comparators: [FALSE] })
-		);
+		const reg = mergeRegistry(coreRegistry, createRegistry({ comparators: [FALSE] }));
 		const { engine, onEvent } = setup(reg);
 		await engine.startFlowPerNode({ automation, executionId: "dg2" });
 		const events: EngineEvent[] = onEvent.mock.calls.map((c) => c[0]);
 		// decision completed but not end
-		expect(
-			events.some(
-				(e) => e.type === "nodeCompleted" && e.nodeId === "start"
-			)
-		).toBe(true);
-		expect(
-			events.some((e) => e.type === "nodeCompleted" && e.nodeId === "end")
-		).toBe(false);
+		expect(events.some((e) => e.type === "nodeCompleted" && e.nodeId === "start")).toBe(true);
+		expect(events.some((e) => e.type === "nodeCompleted" && e.nodeId === "end")).toBe(false);
 	});
 });

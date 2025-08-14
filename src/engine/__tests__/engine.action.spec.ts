@@ -53,12 +53,8 @@ describe("engine action result and error", () => {
 			data: { v: 1 },
 		});
 		const events: EngineEvent[] = onEvent.mock.calls.map((c) => c[0]);
-		const nc = events.find(
-			(e) => e.type === "nodeCompleted" && e.nodeId === "n1"
-		);
-		expect(
-			nc && nc.type === "nodeCompleted" ? nc.result : undefined
-		).toEqual({ status: "ok", data: { v: 1 } });
+		const nc = events.find((e) => e.type === "nodeCompleted" && e.nodeId === "n1");
+		expect(nc && nc.type === "nodeCompleted" ? nc.result : undefined).toEqual({ status: "ok", data: { v: 1 } });
 	});
 
 	it("emits nodeErrored and persists __lastError on thrown error", async () => {
@@ -98,13 +94,9 @@ describe("engine action result and error", () => {
 
 		await engine.startFlowPerNode({ automation, executionId: "ex2" });
 		const s = await store.load("ex2");
-		const lastErr = (s?.data as Record<string, unknown>)["__lastError"] as
-			| { message?: string }
-			| undefined;
+		const lastErr = (s?.data as Record<string, unknown>)["__lastError"] as { message?: string } | undefined;
 		expect(lastErr?.message).toBe("bad");
 		const events: EngineEvent[] = onEvent.mock.calls.map((c) => c[0]);
-		expect(
-			events.some((e) => e.type === "nodeErrored" && e.nodeId === "n1")
-		).toBe(true);
+		expect(events.some((e) => e.type === "nodeErrored" && e.nodeId === "n1")).toBe(true);
 	});
 });

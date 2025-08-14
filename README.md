@@ -18,6 +18,7 @@ Status: experimental/alpha. A API pode mudar sem aviso até v1.
 -   Exemplos adicionais
 -   Roadmap e limitações
 -   Contribuição e licença
+-   Triggers (conceito e helper)
 
 ## Conceitos rápidos
 
@@ -289,9 +290,105 @@ Helpers de runtime (internos): `resolveOperand`, `resolveOperands`.
 -   `src/examples/basic.ts`: fluxo com log, decision por `LT`, wait de 50ms, paralelismo com `waitAll`.
 -   Testes em `src/engine/__tests__`: cobrem decisão (multi-match), estratégias de join, e wait + parallel.
 
+## Triggers (conceito e helper)
+
+Triggers são a forma de iniciar execuções quando eventos ocorrem no seu sistema. A arquitetura de escuta e despacho é responsabilidade do usuário (ex.: NestJS event listeners, filas, webhooks). Para melhorar a DX, a biblioteca oferece um helper para criar handlers fortemente tipados que avaliam filtros opcionais e retornam `executionId` para iniciar o fluxo.
+
+API:
+
+-   `createTriggerHelper({ id, event, filter?, exec })` → `{ event, handle(evt, runtime) }`
+    -   `filter?`: `ConditionNode` avaliado com os comparators do `registry`.
+    -   `exec`: `{ makeExecutionId(evt), selectAutomation(evt), mapUserData?(evt), mode? }`.
+    -   `handle` retorna `{ started: boolean, executionId? }`.
+
+Exemplo (pseudocódigo):
+
+```ts
+import { createTriggerHelper, createComparator, createRegistry, mergeRegistry, coreRegistry } from "@linksolucoes/nier";
+import { createEngine, InlineSchedulerAdapter, InMemoryExecutionStore } from "@linksolucoes/nier";
+
+// Comparators reais
+const eq = createComparator({ id: "EQ", arity: 2, eval: async ([a, b]) => a === b });
+const registry = mergeRegistry(coreRegistry, createRegistry({ comparators: [eq] }));
+
+// Sua automation
+const automation = /* ... */;
+
+// Engine (per-node)
+const store = new InMemoryExecutionStore();
+const engine = createEngine({
+	runtime: { registry, store, onEvent: (e) => console.log(e) },
+	scheduler: new InlineSchedulerAdapter({
+		onNodeJob: async ({ executionId, nodeId }) => engine.handleNodeJob({ automation, executionId, nodeId }),
+		onFlowJob: async () => {},
+	}),
+});
+
+// Helper
+const userCreated = createTriggerHelper<{ kind: string; id: string }>({
+	id: "t_user_created",
+	event: "user.created",
+	filter: { type: "condition", comparator: "EQ", left: { kind: "var", path: "user.kind" }, right: { kind: "const", value: "user.created" } },
+	exec: {
+		makeExecutionId: (e) => `exec_${e.id}`,
+		selectAutomation: () => automation,
+		mapUserData: (e) => ({ kind: e.kind, user: { id: e.id } }),
+		mode: "per-node",
+	},
+});
+
+// Listener no seu app
+async function onUserEvent(evt: { kind: string; id: string }) {
+	const res = await userCreated.handle(evt, engine.runtime);
+	if (res.started) {
+		// Inicie o fluxo de fato
+		await engine.startFlowPerNode({ automation, executionId: res.executionId! });
+	}
+}
+```
+
+### Checks externos nas condições (seu sistema)
+
+Você pode consultar dados do seu sistema nas condições usando operand resolvers do tipo `fn` (assíncronos). Exemplo:
+
+```ts
+import {
+	createOperandResolver,
+	createRegistry,
+	mergeRegistry,
+	coreRegistry,
+} from "@linksolucoes/nier";
+
+// Resolver que calcula dias desde o cadastro via repositório/cliente externo
+const daysSinceSignup = createOperandResolver({
+	kind: "days_since_signup", // usado como fnId nas condições
+	resolve: async (_operand, runtime) => {
+		const userId = runtime.user.data.userId as string;
+		const createdAt = await repo.getUserCreatedAt(userId);
+		const ms = Date.now() - new Date(createdAt).getTime();
+		return Math.floor(ms / 86_400_000);
+	},
+});
+
+const reg = mergeRegistry(
+	coreRegistry,
+	createRegistry({ operandResolvers: [daysSinceSignup] })
+);
+
+// Condition: days_since_signup > 5
+const filter = {
+	type: "condition",
+	comparator: "GT",
+	left: { kind: "fn", fnId: "days_since_signup" },
+	right: { kind: "const", value: 5 },
+} as const;
+```
+
+Também é válido pré-computar e passar via `mapUserData` (ex.: `daysSinceSignup`) e então usar `var` com `user.daysSinceSignup`.
+
 ## Roadmap e limitações
 
--   Triggers: presentes no tipo; execução por eventos ainda não implementada.
+-   Triggers: tipos e helper presentes; orquestração/event bus é responsabilidade do usuário.
 -   Observabilidade: eventos básicos; futuras métricas e spans.
 -   Retries/backoff em actions: somente tipado; não implementado.
 -   Validação de schema de params: planejado (ex.: integração com zod/validador externo — fora do core).

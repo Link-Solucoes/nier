@@ -19,26 +19,19 @@ describe("registry", () => {
 	});
 
 	it("createComparator validates arity", () => {
-		expect(() =>
-			createComparator({ id: "BAD", arity: 3, eval: async () => true })
-		).toThrow();
+		expect(() => createComparator({ id: "BAD", arity: 3, eval: async () => true })).toThrow();
 	});
 
 	it("create* validators require kind and resolve", () => {
 		expect(() => createNodeKind({ kind: "" })).toThrow();
 		expect(() => createActionKind({ kind: "" })).toThrow();
-		const badResolve =
-			undefined as unknown as OperandResolverDefinition["resolve"];
-		expect(() =>
-			createOperandResolver({ kind: "", resolve: badResolve })
-		).toThrow();
+		const badResolve = undefined as unknown as OperandResolverDefinition["resolve"];
+		expect(() => createOperandResolver({ kind: "", resolve: badResolve })).toThrow();
 	});
 
 	it("withValidationRules aggregates rules", () => {
 		const base = coreRegistry;
 		const added = withValidationRules(base, [() => []]);
-		expect(added.validationRules.length).toBe(
-			base.validationRules.length + 1
-		);
+		expect(added.validationRules.length).toBe(base.validationRules.length + 1);
 	});
 });

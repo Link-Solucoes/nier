@@ -1,11 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { Automation } from "../../core/types";
-import {
-	coreRegistry,
-	createOperandResolver,
-	createRegistry,
-	mergeRegistry,
-} from "../../registry/registry";
+import { coreRegistry, createOperandResolver, createRegistry, mergeRegistry } from "../../registry/registry";
 import { createEngine } from "../engine";
 import { InlineSchedulerAdapter } from "../scheduler";
 import { InMemoryExecutionStore } from "../store/in-memory";
@@ -20,10 +15,7 @@ describe("engine error propagation", () => {
 				throw new Error("oops");
 			},
 		});
-		const reg = mergeRegistry(
-			coreRegistry,
-			createRegistry({ operandResolvers: [bad] })
-		);
+		const reg = mergeRegistry(coreRegistry, createRegistry({ operandResolvers: [bad] }));
 		const automation: Automation = {
 			meta: { id: "e", name: "err" },
 			rootNodeId: "d",
@@ -73,8 +65,6 @@ describe("engine error propagation", () => {
 		});
 		await engine.startFlowPerNode({ automation, executionId: "err1" });
 		const events: EngineEvent[] = onEvent.mock.calls.map((c) => c[0]);
-		expect(
-			events.some((e) => e.type === "nodeErrored" && e.nodeId === "d")
-		).toBe(true);
+		expect(events.some((e) => e.type === "nodeErrored" && e.nodeId === "d")).toBe(true);
 	});
 });

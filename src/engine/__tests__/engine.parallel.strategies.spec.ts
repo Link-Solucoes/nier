@@ -49,9 +49,7 @@ describe("parallel strategies", () => {
 		await engine.startFlowPerNode({ automation, executionId: "x1" });
 		const events: EngineEvent[] = onEvent.mock.calls.map((c) => c[0]);
 		// ensure end is reached due to waitAny after first branch
-		expect(
-			events.some((e) => e.type === "nodeCompleted" && e.nodeId === "end")
-		).toBe(true);
+		expect(events.some((e) => e.type === "nodeCompleted" && e.nodeId === "end")).toBe(true);
 	});
 
 	it("count fires when completed >= count", async () => {
@@ -83,9 +81,7 @@ describe("parallel strategies", () => {
 		await engine.startFlowPerNode({ automation, executionId: "x2" });
 		const events: EngineEvent[] = onEvent.mock.calls.map((c) => c[0]);
 		// end should be scheduled once after 2 branches complete
-		const endEvents = events.filter(
-			(e) => e.type === "nodeCompleted" && e.nodeId === "end"
-		);
+		const endEvents = events.filter((e) => e.type === "nodeCompleted" && e.nodeId === "end");
 		expect(endEvents.length).toBe(1);
 	});
 });

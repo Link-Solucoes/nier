@@ -1,10 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-	coreRegistry,
-	createComparator,
-	createRegistry,
-	mergeRegistry,
-} from "../../registry/registry";
+import { coreRegistry, createComparator, createRegistry, mergeRegistry } from "../../registry/registry";
 import { buildIndices } from "../indices";
 import type { Automation } from "../types";
 import { validateAutomation } from "../validation";
@@ -20,7 +15,7 @@ describe("validateAutomation", () => {
 					eval: async ([a]) => a !== undefined && a !== null,
 				}),
 			],
-		})
+		}),
 	);
 
 	it("validates ok flow", () => {

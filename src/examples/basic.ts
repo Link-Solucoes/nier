@@ -134,9 +134,6 @@ async function main() {
 }
 
 // Only run when executed directly in a Node context
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
 if (typeof require !== "undefined" && require.main === module) {
-	// eslint-disable-next-line @typescript-eslint/no-floating-promises
-	main();
+	void main();
 }

@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Automation } from "../../../core/types";
-import {
-	listDefaultValidationRules,
-	validateAutomation,
-} from "../../../core/validation";
+import { listDefaultValidationRules, validateAutomation } from "../../../core/validation";
 import { coreRegistry } from "../../../registry/registry";
 
 describe("more validation rules", () => {
