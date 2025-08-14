@@ -297,21 +297,21 @@ Por que: gerar um JSON Schema do modelo de Automation para ótima DX (autocomple
 
 APIs:
 
-- `compileAutomationSchema(registry, options?)` → `{ schema, manifest }`
-- `compileAutomationBundle(automation, registry, options?)` → `{ schema, manifest, automation }`
+-   `compileAutomationSchema(registry, options?)` → `{ schema, manifest }`
+-   `compileAutomationBundle(automation, registry, options?)` → `{ schema, manifest, automation }`
 
 Options aceitas:
 
-- `schemaId?`: define `$id` no JSON Schema gerado.
-- `draft?`: versão do draft (`"2020-12"` padrão).
+-   `schemaId?`: define `$id` no JSON Schema gerado.
+-   `draft?`: versão do draft (`"2020-12"` padrão).
 
 O que o Manifest contém (resumo):
 
-- `nodeKinds`: `{ kind, category?, description? }[]`
-- `actionKinds`: `{ kind, displayName?, category?, schema? }[]` (schema é repassado para validar `action.params` daquela kind)
-- `comparators`: `{ id, arity }[]`
-- `operandResolvers`: `{ kind }[]`
-- `validationRuleNames`: `string[]`
+-   `nodeKinds`: `{ kind, category?, description? }[]`
+-   `actionKinds`: `{ kind, displayName?, category?, schema? }[]` (schema é repassado para validar `action.params` daquela kind)
+-   `comparators`: `{ id, arity }[]`
+-   `operandResolvers`: `{ kind }[]`
+-   `validationRuleNames`: `string[]`
 
 Como usar (exemplo rápido):
 
@@ -333,22 +333,30 @@ const sendEmail = createActionKind({
 		properties: { templateId: { type: "string" }, to: { type: "string" } },
 	},
 });
-const registry = mergeRegistry(coreRegistry, createRegistry({ actionKinds: [sendEmail] }));
+const registry = mergeRegistry(
+	coreRegistry,
+	createRegistry({ actionKinds: [sendEmail] })
+);
 
 const { schema, manifest } = compileAutomationSchema(registry, {
 	schemaId: "https://example.com/schemas/automation.json",
 });
 
 // Ou com a Automation embutida
-const bundle = compileAutomationBundle({ /* ...Automation... */ } as any, registry);
+const bundle = compileAutomationBundle(
+	{
+		/* ...Automation... */
+	} as any,
+	registry
+);
 ```
 
 Detalhes de validação no schema:
 
-- `ActionNode.action.params` é validado com base no `schema` do action kind correspondente (quando fornecido), via `oneOf`.
-- `ConditionNode` diferencia comparadores unários e binários (com/sem `right`).
-- `Operand` inclui `kind: "fn"` e também os `operandResolvers` do registry; quando `kind == "fn"` exige `fnId` válido.
-- `ParallelNode.join` e `WaitNode.wait` usam `oneOf` para exigir os campos apropriados por estratégia/kind.
+-   `ActionNode.action.params` é validado com base no `schema` do action kind correspondente (quando fornecido), via `oneOf`.
+-   `ConditionNode` diferencia comparadores unários e binários (com/sem `right`).
+-   `Operand` inclui `kind: "fn"` e também os `operandResolvers` do registry; quando `kind == "fn"` exige `fnId` válido.
+-   `ParallelNode.join` e `WaitNode.wait` usam `oneOf` para exigir os campos apropriados por estratégia/kind.
 
 Veja o exemplo completo em `src/examples/schema-compiler.ts`.
 
