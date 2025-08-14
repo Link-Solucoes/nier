@@ -27,7 +27,7 @@ Options:
     -   `Edge`, `Trigger`, `Graph`, `Meta`
 -   `manifest`:
     -   `nodeKinds`: `{ kind, category?, description? }[]`
-    -   `actionKinds`: `{ kind, displayName?, category?, schema? }[]`
+    -   `actionKinds`: `{ kind, displayName?, category?, schema?, retry? }[]` (retry: `{ maxAttempts?, backoffMs? }`)
     -   `comparators`: `{ id, arity }[]`
     -   `operandResolvers`: `{ kind }[]`
     -   `validationRuleNames`: `string[]`

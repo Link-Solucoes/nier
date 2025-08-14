@@ -47,6 +47,39 @@
 -   Último erro mínimo é persistido em `state.data.__lastError`.
 -   Resultados de ações são salvos em `state.exec.nodeResults[nodeId]`.
 
+## Retries e backoff (ações)
+
+-   Defina por ação no `registry.actionKinds[kind].retry`: - `maxAttempts` (default: 1, ou seja, sem retry) - `backoffMs` (default: 0)
+-   Quando uma Action retorna `{ status: "error" }`, o engine não faz fan-out e programa um novo job do mesmo nó se ainda houver tentativas restantes.
+-   Quando uma Action lança exceção, o engine emite `nodeErrored`, persiste `__lastError` e também agenda retry se configurado.
+-   Evento emitido: `nodeRetryScheduled { nodeId, attempt, delayMs }` a cada reagendamento.
+-   Contagem de tentativas fica em `state.exec.attempts[nodeId]` (1 para a primeira execução, 2 para a segunda, etc.).
+-   Durante retries, o nó atual não propaga próximos nós; a continuidade só ocorre quando a execução resultar em sucesso (ou quando `maxAttempts` for atingido e não houver próximos a seguir).
+
+Exemplo (registro de ação com retry):
+
+```ts
+const registry = createRegistry({
+	actionKinds: [
+		{
+			kind: "sendEmail",
+			execute: async (params) => ({
+				status: "error",
+				error: { message: "mail down" },
+			}),
+			retry: { maxAttempts: 3, backoffMs: 2000 },
+		},
+	],
+});
+```
+
+## Histórico leve (enableHistory)
+
+-   Ative via `engine.runtime.options.enableHistory = true`.
+-   Registra eventos essenciais em `state.history: Array<{ type: string; nodeId?: string; at: ISO }>`.
+-   Eventos atualmente registrados: `nodeScheduled`, `nodeCompleted`, `nodeErrored`, `flowCompleted`.
+-   Útil para depuração rápida e auditoria mínima; para observabilidade avançada, prefira captar `onEvent` e enviar para seu sistema de logs/metrics.
+
 ## Exemplo per-node com adapter inline
 
 ```ts

@@ -31,12 +31,17 @@ export interface ExecutionState {
 	/** Resultados por nó e metadados de execução */
 	exec?: {
 		nodeResults: Record<NodeId, unknown>;
+		attempts?: Record<NodeId, number>; // tentativas realizadas por node
 	};
+	/** Histórico leve de eventos (opcional, habilitado por EngineOptions.enableHistory) */
+	history?: Array<{ type: string; nodeId?: NodeId; at: string }>;
 }
 
 export interface EngineOptions {
 	// Estratégia de scheduling: per-flow, per-node ou híbrido (decidido pelo adapter)
 	mode?: "per-flow" | "per-node" | "hybrid";
+	// Se true, registra um histórico leve em ExecutionState.history
+	enableHistory?: boolean;
 }
 
 // Eventos básicos (observabilidade futura)
@@ -61,6 +66,13 @@ export type EngineEvent =
 			executionId: ExecutionId;
 			nodeId: NodeId;
 			toNodeIds: string[];
+	  }
+	| {
+			type: "nodeRetryScheduled";
+			executionId: ExecutionId;
+			nodeId: NodeId;
+			attempt: number; // tentativa que será executada (1..max)
+			delayMs: number;
 	  }
 	| {
 			type: "nodeErrored";
@@ -98,7 +110,11 @@ export interface EngineRuntime {
 }
 
 export interface ConditionEvaluator {
-	eval(def: ComparatorDefinition, operands: Operand[], runtime: RuntimeContextSpaces): Promise<boolean>;
+	eval(
+		def: ComparatorDefinition,
+		operands: Operand[],
+		runtime: RuntimeContextSpaces
+	): Promise<boolean>;
 }
 
 export interface NodeWorkInput {
@@ -114,6 +130,7 @@ export interface NodeWorkOutput {
 	result?: ActionResult; // para action nodes
 	next: Array<{ nodeId: NodeId; delayMs?: number }>; // fan-out (0..n) com delay opcional
 	updatedState?: Partial<ExecutionState>;
+	failed?: boolean; // indica falha de action que pode acionar retry
 }
 
 // Persistência plugável

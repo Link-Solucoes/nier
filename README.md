@@ -12,6 +12,7 @@ Status: experimental/alpha. A API pode mudar sem aviso até v1.
 -   Tipos principais (modelo de domínio)
 -   Validação (validateAutomation)
 -   Engine (execução, eventos e scheduler)
+    -   Retries/backoff e histórico
 -   Registry (extensão: actions, comparators, operands)
 -   Operands e resolução de valores
 -   Índices derivados de grafo
@@ -239,6 +240,8 @@ Eventos emitidos (`EngineEvent`):
 -   `flowStarted`, `flowCompleted`.
 -   `nodeScheduled`, `nodeCompleted { result? }`, `nodeErrored { error }`.
 -   `decisionMultiMatch { matchedBranchIds }` quando múltiplas branches seriam verdadeiras (o engine segue a primeira).
+-   `edgeMultiMatch { toNodeIds }` quando múltiplas edges condicionais a partir de um action são verdadeiras (todas são agendadas).
+-   `nodeRetryScheduled { attempt, delayMs }` quando um retry é agendado para uma action.
 
 Semânticas relevantes demonstradas nos testes (Vitest):
 
@@ -248,6 +251,18 @@ Semânticas relevantes demonstradas nos testes (Vitest):
     -   `waitAny`: dispara após o primeiro ramo finalizar.
     -   `count`: dispara quando `completed >= count`.
 -   Wait: `duration` reagenda o próximo node com `delayMs`; `until` calcula `delayMs` até o timestamp.
+
+### Retries/backoff (ações) e histórico
+
+-   Configure por action em `registry.actionKinds[kind].retry`:
+    -   `maxAttempts` (padrão 1)
+    -   `backoffMs` (padrão 0)
+-   Quando uma action retorna `{ status: 'error' }`, o engine não segue as edges e agenda um retry até atingir `maxAttempts` (emite `nodeRetryScheduled`).
+-   Quando a action lança exceção, o engine emite `nodeErrored`, persiste `state.data.__lastError` e também agenda retry se configurado.
+-   Contador de tentativas: `state.exec.attempts[nodeId]`.
+-   Histórico opcional: habilite `runtime.options.enableHistory = true` para gravar `nodeScheduled`, `nodeCompleted`, `nodeErrored`, `flowCompleted` em `state.history`.
+
+Exemplo completo: veja `src/examples/retry-history.ts`.
 
 ## Registry (extensão)
 

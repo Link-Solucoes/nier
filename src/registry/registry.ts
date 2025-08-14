@@ -1,7 +1,11 @@
 /**
  * Registry extensível (Task 1 - apenas tipos e stubs).
  */
-import type { ActionExecutor, ComparatorDefinition, Operand } from "../core/types";
+import type {
+	ActionExecutor,
+	ComparatorDefinition,
+	Operand,
+} from "../core/types";
 import type { ValidationRule } from "../validation/rules/types";
 
 // =====================
@@ -25,6 +29,10 @@ export interface ActionKindDefinition {
 	category?: string;
 	schema?: unknown; // validação de params
 	execute?: ActionExecutor; // opcional: execução da ação
+	retry?: {
+		maxAttempts?: number; // default 1 (sem retry)
+		backoffMs?: number; // default 0
+	};
 }
 
 // =====================
@@ -62,10 +70,30 @@ export function createRegistry(input: CreateRegistryInput = {}): Registry {
 		operandResolvers: {},
 		validationRules: [],
 	};
-	for (const nk of input.nodeKinds || []) reg.nodeKinds[nk.kind] = nk;
-	for (const ak of input.actionKinds || []) reg.actionKinds[ak.kind] = ak;
-	for (const c of input.comparators || []) reg.comparators[c.id] = c;
-	for (const or of input.operandResolvers || []) reg.operandResolvers[or.kind] = or;
+	for (const nk of input.nodeKinds || []) {
+		if (!nk.kind) throw new Error("NodeKind.kind obrigatório");
+		if (reg.nodeKinds[nk.kind])
+			throw new Error(`NodeKind duplicado: ${nk.kind}`);
+		reg.nodeKinds[nk.kind] = nk;
+	}
+	for (const ak of input.actionKinds || []) {
+		if (!ak.kind) throw new Error("ActionKind.kind obrigatório");
+		if (reg.actionKinds[ak.kind])
+			throw new Error(`ActionKind duplicado: ${ak.kind}`);
+		reg.actionKinds[ak.kind] = ak;
+	}
+	for (const c of input.comparators || []) {
+		if (!c.id) throw new Error("Comparator.id obrigatório");
+		if (reg.comparators[c.id])
+			throw new Error(`Comparator duplicado: ${c.id}`);
+		reg.comparators[c.id] = c;
+	}
+	for (const or of input.operandResolvers || []) {
+		if (!or.kind) throw new Error("OperandResolver.kind obrigatório");
+		if (reg.operandResolvers[or.kind])
+			throw new Error(`OperandResolver duplicado: ${or.kind}`);
+		reg.operandResolvers[or.kind] = or;
+	}
 	return reg;
 }
 
@@ -73,15 +101,24 @@ export interface MergeRegistryOptions {
 	override?: boolean; // se false, conflito gera erro (Task 3)
 }
 
-export function mergeRegistry(base: Registry, extra: Registry, options: MergeRegistryOptions = {}): Registry {
+export function mergeRegistry(
+	base: Registry,
+	extra: Registry,
+	options: MergeRegistryOptions = {}
+): Registry {
 	const { override = true } = options;
-	const conflict = (category: string, key: string) => `Conflito em ${category}:'${key}'`;
+	const conflict = (category: string, key: string) =>
+		`Conflito em ${category}:'${key}'`;
 	if (!override) {
-		for (const k of Object.keys(extra.nodeKinds)) if (base.nodeKinds[k]) throw new Error(conflict("nodeKind", k));
-		for (const k of Object.keys(extra.actionKinds)) if (base.actionKinds[k]) throw new Error(conflict("actionKind", k));
-		for (const k of Object.keys(extra.comparators)) if (base.comparators[k]) throw new Error(conflict("comparator", k));
+		for (const k of Object.keys(extra.nodeKinds))
+			if (base.nodeKinds[k]) throw new Error(conflict("nodeKind", k));
+		for (const k of Object.keys(extra.actionKinds))
+			if (base.actionKinds[k]) throw new Error(conflict("actionKind", k));
+		for (const k of Object.keys(extra.comparators))
+			if (base.comparators[k]) throw new Error(conflict("comparator", k));
 		for (const k of Object.keys(extra.operandResolvers))
-			if (base.operandResolvers[k]) throw new Error(conflict("operandResolver", k));
+			if (base.operandResolvers[k])
+				throw new Error(conflict("operandResolver", k));
 	}
 	return {
 		nodeKinds: { ...base.nodeKinds, ...extra.nodeKinds },
@@ -122,8 +159,11 @@ export const coreRegistry = createRegistry({
 // Helpers (factories) DX - validações leves
 // =====================
 
-export function createComparator(def: ComparatorDefinition): ComparatorDefinition {
-	if (def.arity < 1 || def.arity > 2) throw new Error(`Comparator arity inválida: ${def.id}`);
+export function createComparator(
+	def: ComparatorDefinition
+): ComparatorDefinition {
+	if (def.arity < 1 || def.arity > 2)
+		throw new Error(`Comparator arity inválida: ${def.id}`);
 	return def;
 }
 
@@ -132,25 +172,37 @@ export function createNodeKind(def: NodeKindDefinition): NodeKindDefinition {
 	return def;
 }
 
-export function createActionKind(def: ActionKindDefinition): ActionKindDefinition {
+export function createActionKind(
+	def: ActionKindDefinition
+): ActionKindDefinition {
 	if (!def.kind) throw new Error("ActionKind.kind obrigatório");
 	return def;
 }
 
-export function createOperandResolver(def: OperandResolverDefinition): OperandResolverDefinition {
+export function createOperandResolver(
+	def: OperandResolverDefinition
+): OperandResolverDefinition {
 	if (!def.kind) throw new Error("OperandResolver.kind obrigatório");
-	if (typeof def.resolve !== "function") throw new Error("OperandResolver.resolve deve ser função");
+	if (typeof def.resolve !== "function")
+		throw new Error("OperandResolver.resolve deve ser função");
 	return def;
 }
 
 export function createValidationRule(rule: ValidationRule): ValidationRule {
-	if (typeof rule !== "function") throw new Error("ValidationRule deve ser função");
+	if (typeof rule !== "function")
+		throw new Error("ValidationRule deve ser função");
 	return rule;
 }
 
-export function withValidationRules(registry: Registry, rules: ValidationRule[]): Registry {
+export function withValidationRules(
+	registry: Registry,
+	rules: ValidationRule[]
+): Registry {
 	return {
 		...registry,
-		validationRules: [...registry.validationRules, ...rules.map(createValidationRule)],
+		validationRules: [
+			...registry.validationRules,
+			...rules.map(createValidationRule),
+		],
 	};
 }

@@ -18,6 +18,7 @@ export interface CapabilitiesManifest {
 		category?: string;
 		// Free-form params schema provided by extensions (kept as-is)
 		schema?: unknown;
+		retry?: { maxAttempts?: number; backoffMs?: number };
 	}>;
 	/** Comparators usable in conditions */
 	comparators: Array<{
