@@ -1,8 +1,3 @@
-/**
- * Core tipos de domínio para a engine de automação baseada em DAG.
- * Somente declarações e estruturas de dados (Task 1). Sem lógica de validação.
- */
-
 // =========================
 // IDs (futuros candidatos a branded types)
 // =========================
@@ -25,7 +20,7 @@ export interface AutomationMeta {
 	id: AutomationId;
 	name: string;
 	description?: string;
-	version?: VersionInfo; // TODO: estratégia de versionamento futura (Task 6)
+	version?: VersionInfo;
 	createdAt?: string; // ISO
 	updatedAt?: string; // ISO
 }
@@ -33,7 +28,7 @@ export interface AutomationMeta {
 // =========================
 // Conditions / Operands / Comparators
 // =========================
-export type OperandKind = "const" | "var" | "context" | "fn"; // extensível via registry futuramente
+export type OperandKind = "const" | "var" | "context" | "fn";
 
 export interface BaseOperand<K extends string = OperandKind> {
 	kind: K;
@@ -82,7 +77,6 @@ export interface EdgeCondition {
 // Nodes
 // =========================
 export type NodeType = "action" | "decision" | "parallel" | "wait" | "end";
-// Futuro: subflow, script, loop, etc.
 
 interface BaseNode<T extends NodeType = NodeType, X = unknown> {
 	id: NodeId;
@@ -146,7 +140,6 @@ export type AnyNode = ActionNode | DecisionNode | ParallelNode | WaitNode | EndN
 // =========================
 // Edges
 // =========================
-// Edges explícitas conectam nós (alternativa: derivar de estruturas internas). Mantemos para uniformidade.
 export interface Edge {
 	id: EdgeId; // obrigatório para rastreio/observability
 	from: NodeId;
@@ -236,7 +229,7 @@ export type ComparatorEvalFn = (operands: Operand[], runtime: RuntimeContextSpac
 export interface ComparatorDefinition {
 	id: ComparatorId;
 	arity: number; // 1 ou 2 inicialmente
-	eval: ComparatorEvalFn; // runtime (futuro) - não usado no core Task 1
+	eval: ComparatorEvalFn;
 	// optional type hints
 	// TODO: adicionar validação de tipos de operandos
 }

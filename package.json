@@ -1,22 +1,56 @@
 {
 	"name": "@linksolucoes/nier",
+	"version": "1.0.0",
 	"description": "Engine de automações baseada em grafos",
 	"author": "João Pedro <contato.gepetojj@gmail.com>",
-	"version": "1.0.0",
 	"license": "MIT",
+	"main": "dist/index.js",
+	"keywords": [
+		"automation",
+		"graph",
+		"engine"
+	],
+	"homepage": "https://github.com/link-solucoes/nier",
+	"bugs": {
+		"url": "https://github.com/link-solucoes/nier/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/link-solucoes/nier.git"
+	},
+	"files": [
+		"dist"
+	],
+	"type": "module",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		"./package.json": "./package.json",
+		".": {
+			"import": "./dist/index.js",
+			"default": "./dist/index.cjs"
+		}
+	},
 	"scripts": {
-		"format": "biome format --write .",
+		"ci": "pnpm build && pnpm check-format && pnpm check-exports",
+		"build": "tsup",
 		"lint": "biome lint --write .",
-		"commit": "git cz",
+		"format": "biome format --write .",
 		"test": "vitest --run",
-		"test:watch": "vitest"
+		"test:watch": "vitest",
+		"commit": "git cz",
+		"check-exports": "attw --pack .",
+		"local-release": "changeset version && changeset publish",
+		"prepublishOnly": "pnpm run ci"
 	},
 	"devDependencies": {
+		"@arethetypeswrong/cli": "^0.18.2",
 		"@biomejs/biome": "^2.1.4",
+		"@changesets/cli": "^2.29.5",
 		"@types/node": "^20.14.9",
 		"commitizen": "^4.3.1",
 		"cz-conventional-changelog": "^3.3.0",
 		"ts-node": "^10.9.2",
+		"tsup": "^8.5.0",
 		"tsx": "^4.20.4",
 		"typescript": "^5.5.4",
 		"vitest": "^2.0.5"
