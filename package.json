@@ -1,10 +1,9 @@
 {
-	"name": "nier",
-	"description": "",
+	"name": "@linksolucoes/nier",
+	"description": "Engine de automações baseada em grafos",
 	"author": "João Pedro <contato.gepetojj@gmail.com>",
-	"version": "0.1.0",
+	"version": "1.0.0",
 	"license": "MIT",
-	"private": true,
 	"scripts": {
 		"format": "biome format --write .",
 		"lint": "biome lint --write .",

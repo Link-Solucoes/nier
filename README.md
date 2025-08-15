@@ -33,7 +33,7 @@ Princípios: tipos primeiro; funções puras onde possível; zero dependências 
 
 ## Instalação
 
-Pacote (planejado):
+Pacote:
 
 ```sh
 pnpm add @linksolucoes/nier
