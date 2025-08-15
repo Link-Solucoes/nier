@@ -2,8 +2,6 @@
 
 Engine de automações baseada em grafos (DAG) para orquestrar fluxos com nós de ação, decisão, paralelismo e espera. Focada em tipagem forte, validação configurável e extensibilidade via registries (actions, comparators, operand resolvers).
 
-Status: experimental/alpha. A API pode mudar sem aviso até v1.
-
 ## Índice
 
 -   Conceitos rápidos
@@ -177,6 +175,16 @@ await engine.startFlowPerNode({ automation, executionId: "exec_1" });
 
 Dica: um exemplo equivalente está em `src/examples/basic.ts`.
 
+## API pública (exports)
+
+Disponível via `@linksolucoes/nier` (barrel `src/index.ts`):
+
+-   Core: `buildIndices`, `validateAutomation`, `listDefaultValidationRules`, tipos (`Automation`, `Graph`, `ConditionNode`, `Operand`, ...)
+-   Engine: `createEngine`, `InlineSchedulerAdapter`, `InMemoryExecutionStore`, tipos (`EngineEvent`, `EngineSchedulerAdapter`, `ExecutionStore`, `ExecutionState`)
+-   Registry: `coreRegistry`, `createRegistry`, `mergeRegistry`, helpers (`createComparator`, `createActionKind`, `createNodeKind`, `createOperandResolver`, `withValidationRules`)
+-   Schema: `compileAutomationSchema`, `compileAutomationBundle`
+-   Triggers: `createTriggerHelper`
+
 ## Tipos principais (modelo de domínio)
 
 -   Nodes (`type`):
@@ -270,7 +278,7 @@ Criação e composição:
 
 -   `createRegistry({ nodeKinds?, actionKinds?, comparators?, operandResolvers? })`
 -   `mergeRegistry(base, extra, { override = true })`
--   `coreRegistry` com node kinds básicos e comparators stub (substitua/estenda com suas implementações).
+-   `coreRegistry` com node kinds básicos e comparators base (EQ, NEQ, GT, LT, EXISTS).
 
 Factories de conveniência (validações leves):
 
@@ -471,10 +479,23 @@ const filter = {
 
 Também é válido pré-computar e passar via `mapUserData` (ex.: `daysSinceSignup`) e então usar `var` com `user.daysSinceSignup`.
 
-## Roadmap e limitações
+## Validação (regras e códigos)
 
--   Triggers: tipos e helper presentes; orquestração/event bus é responsabilidade do usuário.
--   Observabilidade: eventos básicos; futuras métricas e spans.
--   Retries/backoff em actions: somente tipado; não implementado.
--   Validação de schema de params: planejado (ex.: integração com zod/validador externo — fora do core).
--   Serialização/versão de automations e índices incrementais: backlog.
+Regras padrão (`src/validation/rules`):
+
+-   Básicas: root presente/existente; IDs únicos (nodes/edges/triggers); endpoints de edges.
+-   Estruturais: alcançabilidade; ciclos; semântica de decision/parallel/wait; throttle de triggers.
+-   Condições: comparators conhecidos; aviso de possível multi-match.
+
+Códigos (`IssueCodes`):
+
+-   `GRAPH_ROOT_MISSING`, `GRAPH_ROOT_NOT_FOUND`
+-   `NODE_DUPLICATE_ID`, `EDGE_DUPLICATE_ID`, `TRIGGER_DUPLICATE_ID`
+-   `EDGE_NODE_MISSING`, `NODE_UNREACHABLE`, `CYCLE_DETECTED`
+-   `DECISION_NO_BRANCHES`, `DECISION_NO_CONDITION`, `DECISION_POSSIBLE_MULTI_MATCH`
+-   `PARALLEL_BRANCH_COUNT`, `PARALLEL_JOIN_COUNT_INVALID`
+-   `WAIT_INVALID_CONFIG`
+-   `THROTTLE_INVALID`
+-   `COMPARATOR_UNKNOWN`
+
+Issue shape: `{ level: 'error'|'warning'|'info', code, message, context? }`.
