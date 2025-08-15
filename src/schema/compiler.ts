@@ -1,43 +1,27 @@
 import { listDefaultValidationRules } from "../core/validation";
 import type { Registry } from "../registry/registry";
-import type {
-	CapabilitiesManifest,
-	CompiledSchemaOutput,
-	CompileOptions,
-} from "./types";
+import type { CapabilitiesManifest, CompiledSchemaOutput, CompileOptions } from "./types";
 
 /** Build a manifest of capabilities from the current registry. */
-export function buildCapabilitiesManifest(
-	registry: Registry
-): CapabilitiesManifest {
-	const nodeKinds = Object.values(registry.nodeKinds).map(
-		({ kind, category, description }) => ({
-			kind,
-			category,
-			description,
-		})
-	);
-	const actionKinds = Object.values(registry.actionKinds).map(
-		({ kind, displayName, category, schema, retry }) => ({
-			kind,
-			displayName,
-			category,
-			schema,
-			retry,
-		})
-	);
-	const comparators = Object.values(registry.comparators).map(
-		({ id, arity }) => ({ id, arity })
-	);
-	const operandResolvers = Object.values(registry.operandResolvers).map(
-		({ kind }) => ({ kind })
-	);
+export function buildCapabilitiesManifest(registry: Registry): CapabilitiesManifest {
+	const nodeKinds = Object.values(registry.nodeKinds).map(({ kind, category, description }) => ({
+		kind,
+		category,
+		description,
+	}));
+	const actionKinds = Object.values(registry.actionKinds).map(({ kind, displayName, category, schema, retry }) => ({
+		kind,
+		displayName,
+		category,
+		schema,
+		retry,
+	}));
+	const comparators = Object.values(registry.comparators).map(({ id, arity }) => ({ id, arity }));
+	const operandResolvers = Object.values(registry.operandResolvers).map(({ kind }) => ({ kind }));
 
 	// Validation rules: default + registered (names only for now)
 	const defaultRuleNames = listDefaultValidationRules();
-	const extensionRuleNames = registry.validationRules.map(
-		(r) => r.name || "anonymousRule"
-	);
+	const extensionRuleNames = registry.validationRules.map((r) => r.name || "anonymousRule");
 
 	return {
 		manifestVersion: "1.0.0",
@@ -53,10 +37,7 @@ export function buildCapabilitiesManifest(
  * Compile a JSON Schema describing the Automation structure, tailored to the current registry
  * (e.g., enumerations for comparator IDs and node types), plus a capabilities manifest.
  */
-export function compileAutomationSchema(
-	registry: Registry,
-	options: CompileOptions = {}
-): CompiledSchemaOutput {
+export function compileAutomationSchema(registry: Registry, options: CompileOptions = {}): CompiledSchemaOutput {
 	const draftMap: Record<NonNullable<CompileOptions["draft"]>, string> = {
 		"2020-12": "https://json-schema.org/draft/2020-12/schema",
 		"2019-09": "https://json-schema.org/draft/2019-09/schema",
@@ -76,8 +57,7 @@ export function compileAutomationSchema(
 	// Precompute action params map for $defs
 	const actionParams: Record<string, unknown> = {};
 	for (const [k, def] of Object.entries(registry.actionKinds)) {
-		if ((def as { schema?: unknown }).schema)
-			actionParams[k] = (def as { schema: unknown }).schema;
+		if ((def as { schema?: unknown }).schema) actionParams[k] = (def as { schema: unknown }).schema;
 	}
 
 	// Shared definitions
@@ -197,19 +177,14 @@ export function compileAutomationSchema(
 					required: ["kind"],
 					properties: {
 						// Keep kind enum for discoverability; oneOf below enforces stricter params
-						kind: actionKindEnum.length
-							? { enum: actionKindEnum }
-							: { type: "string" },
+						kind: actionKindEnum.length ? { enum: actionKindEnum } : { type: "string" },
 						params: { type: "object" },
 					},
 					additionalProperties: true,
 					oneOf: (() => {
 						const variants: Array<Record<string, unknown>> = [];
 						const withSchema = Object.entries(registry.actionKinds)
-							.filter(
-								([, def]) =>
-									(def as { schema?: unknown }).schema
-							)
+							.filter(([, def]) => (def as { schema?: unknown }).schema)
 							.map(([k]) => ({
 								properties: {
 									kind: { const: k },
@@ -221,13 +196,8 @@ export function compileAutomationSchema(
 								additionalProperties: true,
 							}));
 						variants.push(...withSchema);
-						const withoutSchemaKinds = Object.entries(
-							registry.actionKinds
-						)
-							.filter(
-								([, def]) =>
-									!(def as { schema?: unknown }).schema
-							)
+						const withoutSchemaKinds = Object.entries(registry.actionKinds)
+							.filter(([, def]) => !(def as { schema?: unknown }).schema)
 							.map(([k]) => k);
 						if (withoutSchemaKinds.length) {
 							variants.push({
@@ -489,7 +459,7 @@ export function compileAutomationSchema(
 export function compileAutomationBundle(
 	automation: import("../core/types").Automation,
 	registry: Registry,
-	options: CompileOptions = {}
+	options: CompileOptions = {},
 ) {
 	const { schema, manifest } = compileAutomationSchema(registry, options);
 	return { schema, manifest, automation };

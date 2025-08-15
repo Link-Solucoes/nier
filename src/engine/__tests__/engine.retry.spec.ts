@@ -27,8 +27,7 @@ describe("engine retries/backoff", () => {
 			retry: { maxAttempts: 2, backoffMs: 1 },
 			execute: async () => {
 				attempts += 1;
-				if (attempts === 1)
-					return { status: "error", error: "boom" } as const;
+				if (attempts === 1) return { status: "error", error: "boom" } as const;
 				return { status: "ok" } as const;
 			},
 		};
@@ -52,13 +51,7 @@ describe("engine retries/backoff", () => {
 		await engine.startFlowPerNode({ automation, executionId: "rx" });
 		const events: EngineEvent[] = onEvent.mock.calls.map((c) => c[0]);
 		// should have scheduled a retry and eventually completed 'end'
-		expect(
-			events.some(
-				(e) => e.type === "nodeRetryScheduled" && e.nodeId === "a1"
-			)
-		).toBe(true);
-		expect(
-			events.some((e) => e.type === "nodeCompleted" && e.nodeId === "end")
-		).toBe(true);
+		expect(events.some((e) => e.type === "nodeRetryScheduled" && e.nodeId === "a1")).toBe(true);
+		expect(events.some((e) => e.type === "nodeCompleted" && e.nodeId === "end")).toBe(true);
 	});
 });

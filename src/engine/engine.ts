@@ -60,12 +60,7 @@ export function createEngine({ runtime, scheduler }: CreateEngineParams) {
 		},
 
 		/** Deve ser chamado pelo consumidor quando um job de node for processado (fila externa ou inline). */
-		async handleNodeJob({
-			automation,
-			executionId,
-			nodeId,
-			userData,
-		}: NodeJobHandlerParams) {
+		async handleNodeJob({ automation, executionId, nodeId, userData }: NodeJobHandlerParams) {
 			const indices = buildIndices(automation.graph);
 			const now = new Date().toISOString();
 			const loaded = await runtime.store?.load(executionId);
@@ -99,9 +94,7 @@ export function createEngine({ runtime, scheduler }: CreateEngineParams) {
 					__nodeCtx?: Record<string, { p: string; b: string }>;
 				}
 			).__nodeCtx;
-			const ctxMap: Record<string, { p: string; b: string }> = nodeCtxRaw
-				? { ...nodeCtxRaw }
-				: {};
+			const ctxMap: Record<string, { p: string; b: string }> = nodeCtxRaw ? { ...nodeCtxRaw } : {};
 			const incomingBranchCtx = ctxMap[nodeId];
 			// Executa trabalho do nó
 			let out: NodeWorkOutput;
@@ -134,10 +127,7 @@ export function createEngine({ runtime, scheduler }: CreateEngineParams) {
 				const ndef = indices.nodeMap[nodeId];
 				if (ndef?.type === "action") {
 					const kind = runtime.registry.actionKinds[ndef.action.kind];
-					const maxAttempts = Math.max(
-						1,
-						kind?.retry?.maxAttempts ?? 1
-					);
+					const maxAttempts = Math.max(1, kind?.retry?.maxAttempts ?? 1);
 					const backoffMs = Math.max(0, kind?.retry?.backoffMs ?? 0);
 					const prev = state.exec?.attempts?.[nodeId] ?? 0;
 					const attempts = prev + 1;
@@ -169,11 +159,7 @@ export function createEngine({ runtime, scheduler }: CreateEngineParams) {
 				throw err;
 			}
 			// Retry/backoff para action falha
-			if (
-				out.failed &&
-				state.currentNodeId === nodeId &&
-				node.type === "action"
-			) {
+			if (out.failed && state.currentNodeId === nodeId && node.type === "action") {
 				const kind = runtime.registry.actionKinds[node.action.kind];
 				const maxAttempts = Math.max(1, kind?.retry?.maxAttempts ?? 1);
 				const backoffMs = Math.max(0, kind?.retry?.backoffMs ?? 0);
@@ -214,12 +200,10 @@ export function createEngine({ runtime, scheduler }: CreateEngineParams) {
 			delete ctxMap[nodeId];
 			// Se node atual é parallel, inicializa contexto para cada branch start
 			if (node.type === "parallel") {
-				for (const n of out.next)
-					ctxMap[n.nodeId] = { p: node.id, b: n.nodeId };
+				for (const n of out.next) ctxMap[n.nodeId] = { p: node.id, b: n.nodeId };
 			} else if (incomingBranchCtx) {
 				// Propaga contexto do branch para próximos nós, a menos que já exista (ex: fan-out paralelo subsequente)
-				for (const n of out.next)
-					if (!ctxMap[n.nodeId]) ctxMap[n.nodeId] = incomingBranchCtx;
+				for (const n of out.next) if (!ctxMap[n.nodeId]) ctxMap[n.nodeId] = incomingBranchCtx;
 			}
 			// Checa join: se não há próximos e o node pertence a um branch ativo, computa se deve acionar o join
 			const extraNext: Array<{ nodeId: string; delayMs?: number }> = [];
@@ -227,20 +211,14 @@ export function createEngine({ runtime, scheduler }: CreateEngineParams) {
 			if (out.next.length === 0 && incomingBranchCtx) {
 				const pc = controls[incomingBranchCtx.p];
 				if (pc && !pc.fired) {
-					if (
-						pc.branches &&
-						pc.branches[incomingBranchCtx.b] !== true
-					) {
+					if (pc.branches && pc.branches[incomingBranchCtx.b] !== true) {
 						pc.branches[incomingBranchCtx.b] = true;
 						pc.completed += 1;
 					}
 					let shouldFire = false;
-					if (pc.strategy === "waitAll")
-						shouldFire = pc.completed >= pc.expected;
-					else if (pc.strategy === "waitAny")
-						shouldFire = pc.completed >= 1;
-					else if (pc.strategy === "count")
-						shouldFire = pc.completed >= (pc.count ?? pc.expected);
+					if (pc.strategy === "waitAll") shouldFire = pc.completed >= pc.expected;
+					else if (pc.strategy === "waitAny") shouldFire = pc.completed >= 1;
+					else if (pc.strategy === "count") shouldFire = pc.completed >= (pc.count ?? pc.expected);
 					if (shouldFire && pc.to && !pc.fired) {
 						pc.fired = true;
 						extraNext.push({ nodeId: pc.to });
@@ -252,8 +230,7 @@ export function createEngine({ runtime, scheduler }: CreateEngineParams) {
 				}
 			}
 			// Persist ctx map
-			(state.data as Record<string, unknown>).__nodeCtx =
-				ctxMap as unknown as Record<string, unknown>;
+			(state.data as Record<string, unknown>).__nodeCtx = ctxMap as unknown as Record<string, unknown>;
 			await runtime.store?.save(state);
 			runtime.onEvent?.({
 				type: "nodeCompleted",
@@ -285,15 +262,9 @@ export function createEngine({ runtime, scheduler }: CreateEngineParams) {
 					const pc = controls[k];
 					if (!pc) continue;
 					if (pc.fired) continue;
-					if (pc.strategy === "waitAll" && pc.completed < pc.expected)
-						hasPendingJoin = true;
-					else if (pc.strategy === "waitAny" && pc.completed < 1)
-						hasPendingJoin = true;
-					else if (
-						pc.strategy === "count" &&
-						pc.completed < (pc.count ?? pc.expected)
-					)
-						hasPendingJoin = true;
+					if (pc.strategy === "waitAll" && pc.completed < pc.expected) hasPendingJoin = true;
+					else if (pc.strategy === "waitAny" && pc.completed < 1) hasPendingJoin = true;
+					else if (pc.strategy === "count" && pc.completed < (pc.count ?? pc.expected)) hasPendingJoin = true;
 					if (hasPendingJoin) break;
 				}
 				if (!hasPendingJoin) {
@@ -357,11 +328,7 @@ async function handleNodeWork(input: NodeWorkInput): Promise<NodeWorkOutput> {
 			};
 			const nextIds: string[] = [];
 			for (const e of fromHere) {
-				const ok = await evaluateConditionTree(
-					e.condition?.root,
-					execCtx,
-					runtime.registry
-				);
+				const ok = await evaluateConditionTree(e.condition?.root, execCtx, runtime.registry);
 				if (ok) nextIds.push(e.to);
 			}
 			if (nextIds.length > 1) {
@@ -406,29 +373,18 @@ async function handleNodeWork(input: NodeWorkInput): Promise<NodeWorkOutput> {
 				user: { data: input.userContext.data },
 			};
 
-			const evalCondition = async (
-				root?: ConditionNode
-			): Promise<boolean> => {
+			const evalCondition = async (root?: ConditionNode): Promise<boolean> => {
 				if (!root) return false;
 				const evaluate = async (n: ConditionNode): Promise<boolean> => {
 					if (n.type === "group") {
-						const children = await Promise.all(
-							n.children.map((c) => evaluate(c))
-						);
-						return n.op === "AND"
-							? children.every(Boolean)
-							: children.some(Boolean);
+						const children = await Promise.all(n.children.map((c) => evaluate(c)));
+						return n.op === "AND" ? children.every(Boolean) : children.some(Boolean);
 					}
 					// leaf condition
 					const comp = runtime.registry.comparators[n.comparator];
 					if (!comp) return false; // já validado, mas fail-safe
-					const operands: Operand[] =
-						n.right === undefined ? [n.left] : [n.left, n.right];
-					const resolved = await resolveOperands(
-						operands,
-						execCtx,
-						runtime.registry
-					);
+					const operands: Operand[] = n.right === undefined ? [n.left] : [n.left, n.right];
+					const resolved = await resolveOperands(operands, execCtx, runtime.registry);
 					return comp.eval(resolved as unknown as Operand[], execCtx);
 				};
 				return evaluate(root);
@@ -447,9 +403,7 @@ async function handleNodeWork(input: NodeWorkInput): Promise<NodeWorkOutput> {
 				});
 			}
 			if (matched.length >= 1) {
-				const firstMatch = node.branches.find(
-					(b) => b.id === matched[0]
-				);
+				const firstMatch = node.branches.find((b) => b.id === matched[0]);
 				if (firstMatch) return { next: [{ nodeId: firstMatch.to }] };
 			}
 			if (node.defaultTo) return { next: [{ nodeId: node.defaultTo }] };
@@ -466,9 +420,7 @@ async function handleNodeWork(input: NodeWorkInput): Promise<NodeWorkOutput> {
 				to: node.to,
 				strategy: node.join?.strategy ?? "waitAll",
 				count: node.join?.count,
-				branches: Object.fromEntries(
-					node.branches.map((b) => [b.start, false])
-				),
+				branches: Object.fromEntries(node.branches.map((b) => [b.start, false])),
 				fired: false,
 			};
 			return { next: fanout, updatedState: { control: ctrl } };

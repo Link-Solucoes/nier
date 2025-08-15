@@ -110,11 +110,7 @@ export interface EngineRuntime {
 }
 
 export interface ConditionEvaluator {
-	eval(
-		def: ComparatorDefinition,
-		operands: Operand[],
-		runtime: RuntimeContextSpaces
-	): Promise<boolean>;
+	eval(def: ComparatorDefinition, operands: Operand[], runtime: RuntimeContextSpaces): Promise<boolean>;
 }
 
 export interface NodeWorkInput {

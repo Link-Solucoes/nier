@@ -50,7 +50,7 @@ async function main() {
 					})(),
 				},
 			],
-		})
+		}),
 	);
 
 	const store = new InMemoryExecutionStore();

@@ -19,43 +19,32 @@ describe("registry", () => {
 	});
 
 	it("createComparator validates arity", () => {
-		expect(() =>
-			createComparator({ id: "BAD", arity: 3, eval: async () => true })
-		).toThrow();
+		expect(() => createComparator({ id: "BAD", arity: 3, eval: async () => true })).toThrow();
 	});
 
 	it("create* validators require kind and resolve", () => {
 		expect(() => createNodeKind({ kind: "" })).toThrow();
 		expect(() => createActionKind({ kind: "" })).toThrow();
-		const badResolve =
-			undefined as unknown as OperandResolverDefinition["resolve"];
-		expect(() =>
-			createOperandResolver({ kind: "", resolve: badResolve })
-		).toThrow();
+		const badResolve = undefined as unknown as OperandResolverDefinition["resolve"];
+		expect(() => createOperandResolver({ kind: "", resolve: badResolve })).toThrow();
 	});
 
 	it("withValidationRules aggregates rules", () => {
 		const base = coreRegistry;
 		const added = withValidationRules(base, [() => []]);
-		expect(added.validationRules.length).toBe(
-			base.validationRules.length + 1
-		);
+		expect(added.validationRules.length).toBe(base.validationRules.length + 1);
 	});
 
 	it("createRegistry throws on duplicate definitions", () => {
-		expect(() =>
-			createRegistry({ nodeKinds: [{ kind: "x" }, { kind: "x" }] })
-		).toThrow();
-		expect(() =>
-			createRegistry({ actionKinds: [{ kind: "a" }, { kind: "a" }] })
-		).toThrow();
+		expect(() => createRegistry({ nodeKinds: [{ kind: "x" }, { kind: "x" }] })).toThrow();
+		expect(() => createRegistry({ actionKinds: [{ kind: "a" }, { kind: "a" }] })).toThrow();
 		expect(() =>
 			createRegistry({
 				comparators: [
 					{ id: "EQ", arity: 2, eval: async () => true },
 					{ id: "EQ", arity: 2, eval: async () => true },
 				],
-			})
+			}),
 		).toThrow();
 		expect(() =>
 			createRegistry({
@@ -63,7 +52,7 @@ describe("registry", () => {
 					{ kind: "r", resolve: async () => 1 },
 					{ kind: "r", resolve: async () => 1 },
 				],
-			})
+			}),
 		).toThrow();
 	});
 });
