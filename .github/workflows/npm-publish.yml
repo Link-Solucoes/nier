@@ -38,7 +38,6 @@ jobs:
                   registry-url: https://registry.npmjs.org/
                   scope: "@linksolucoes"
             - run: pnpm i
-            - run: pnpm run ci
             - run: pnpm publish --access public
               env:
                   NODE_AUTH_TOKEN: ${{secrets.npm_token}}
