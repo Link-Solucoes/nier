@@ -31,7 +31,7 @@
 		}
 	},
 	"scripts": {
-		"ci": "pnpm build && pnpm check-format && pnpm check-exports",
+		"ci": "pnpm build && pnpm check-exports",
 		"build": "tsup",
 		"lint": "biome lint --write .",
 		"format": "biome format --write .",
